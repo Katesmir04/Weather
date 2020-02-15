@@ -149,9 +149,15 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout hiddenLay = findViewById(R.id.hidden_lay);
         BottomSheetBehavior bottomSheetBehavior = BottomSheetBehavior.from(hiddenLay);
         bottomSheetBehavior.setPeekHeight(50); //Высота выступающей части
-        bottomSheetBehavior.setHideable(true);  //Скрытие свайпом
+        bottomSheetBehavior.setHideable(false);  //Скрытие свайпом
 
     }
+
+    public void setmRecomendObject(ArrayList<RecomendObject> arrayList){
+        // Массив с объектами рекомендаций
+        mRecomendObjectArrayList = arrayList;
+    }
+
 
     private void createInformer(ArrayList<WeatherHourData> arrayList) {
 
