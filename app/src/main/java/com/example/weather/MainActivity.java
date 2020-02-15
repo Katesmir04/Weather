@@ -21,6 +21,8 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -156,6 +158,13 @@ public class MainActivity extends AppCompatActivity {
     public void setmRecomendObject(ArrayList<RecomendObject> arrayList){
         // Массив с объектами рекомендаций
         mRecomendObjectArrayList = arrayList;
+    }
+
+    // Создание меню
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.settings, menu);
+        return true;
     }
 
 
