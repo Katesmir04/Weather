@@ -226,15 +226,16 @@ public class MainActivity extends AppCompatActivity {
             }
 
 
-            //Добавляем  данные в информер
             if(record)
-                mInformer.addView(rowSide);
+                mInformer.addView(rowSide);  //Добавляем  данные в информер
+
         }
 
     }
 
     //Запрашиваем данные о погоде по координатам
     private void getInfoWeather(double lat, double lng){
+
         Ion.with(this)
                 .load(URL_API + "&key="+API_KEY + "&q=" + lat + "," + lng)
                 .asJsonObject()
@@ -320,13 +321,13 @@ public class MainActivity extends AppCompatActivity {
                                     weatherHourData.setHumidity(humidity);
                                     weatherHourData.setDateUpdate(dateUpdate);
                                     weatherHourData.setPressure(getMMrt(pressure));
-                                    Date dateInfo = stringToDateTime(getTimeString(dateDay, time));
-                                    weatherHourData.setTime(dateInfo);
+                                    //Date dateInfo = stringToDateTime(getTimeString(dateDay, time));
+                                    //weatherHourData.setTime(dateInfo);
                                     weatherHourData.setMinC(minC);
                                     weatherHourData.setMaxC(maxC);
                                     //Log.d(TAG, "dateInfo = " + dateInfo);
 
-                                    weatherHourData.setImage(getImageweather(dateInfo, weatherCode, stringToDate(sunrise), stringToDate(sunset)));
+                                    //weatherHourData.setImage(getImageweather(dateInfo, weatherCode, stringToDate(sunrise), stringToDate(sunset)));
                                     mDataArrayList.add(weatherHourData); //Сохраняем данные в массив
 
 
@@ -344,6 +345,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private Date stringToDate(String string){  //Преобразование строки в дату
+
+        Date date = new Date();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.US);
+        try {
+            date = dateFormat.parse(string);
+        } catch (ParseException e) {
+            Log.d(TAG, "Error = " + e);
+            e.printStackTrace();
+        }
+
+        return date;
+    }
 
     private Date stringToDateTime(String string){ //Преобразование строки в дату
 
