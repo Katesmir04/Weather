@@ -1,11 +1,14 @@
 package com.example.weather;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
@@ -16,18 +19,24 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import android.widget.Toast;
 
+import com.example.weather.dialogFragments.DialogRecomended;
+import com.example.weather.enteties.RecomendObject;
+import com.example.weather.enteties.WeatherHourData;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -56,26 +65,63 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<WeatherHourData> mDataArrayList;
     private LinearLayout mInformer;
 
+
+    enum Typeday {morning, day, evening, night};
+
+    CoordinatorLayout mContainer;
+
     LocationManager locManager;
+    Toolbar mToolbar;
+    FrameLayout mLoading;
+    TextView mCityName, mDiscrWeather, mTemp, mInfoDay, mInfoTemp, mInfoDayNext, mInfoTempNext;
+    String discrWeather;
+    int tempC;
+    ImageView imageBaby;
+    ArrayList<RecomendObject> mRecomendObjectArrayList;
+
+    SharedPreferences mPreferences;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mContainer = findViewById(R.id.conteiner);
+        mToolbar = findViewById(R.id.toolbar);
+        mToolbar.setTitle(R.string.app_name);
+        setSupportActionBar(mToolbar);
+
+        mLoading = findViewById(R.id.loading);
+        mCityName = findViewById(R.id.cityName);
+        mDiscrWeather = findViewById(R.id.discr);
+        mTemp = findViewById(R.id.temper);
+        mInfoDay = findViewById(R.id.infoText);
+        mInfoTemp = findViewById(R.id.infoTemp);
+
+        mInfoDayNext = findViewById(R.id.infoTextNext);
+        mInfoTempNext = findViewById(R.id.infoTempNext);
+
+
+        imageBaby = findViewById(R.id.baby);
+
+        mLoading.setVisibility(View.VISIBLE);
 
         locManager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
-        if (locManager != null && !locManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+        if (locManager != null && !locManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){  // Проверка включения GPS
             Log.e(TAG, "GPS IS NOT enabled.");
         } else {
             Log.d(TAG, "GPS is enabled.");
         }
+
+        // Провайдер местоположения
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         //Получение последнего местоположения
         getLastLocation();
 
+        //Проверка наличия разрешений от пользователя, если их нет запрашиваем
 
-        //Проверка разрешений от пользователя
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
@@ -86,61 +132,95 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "already permission granted");
         }
 
-        // Обновление координат по клику кнопки
-//        Button button = findViewById(R.id.button);
-//        button.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                getLastLocation();
-//            }
-//        });
         mInformer = findViewById(R.id.informer);
+
+        //  Открытие диалога с рекомендациями
+        imageBaby.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogRecomended dialogRecomended = new DialogRecomended(mRecomendObjectArrayList);
+                dialogRecomended.show(getSupportFragmentManager(), "DialogRecomended");
+
+            }
+        });
+
+
+        // Выдвижная панель
+        LinearLayout hiddenLay = findViewById(R.id.hidden_lay);
+        BottomSheetBehavior bottomSheetBehavior = BottomSheetBehavior.from(hiddenLay);
+        bottomSheetBehavior.setPeekHeight(50); //Высота выступающей части
+        bottomSheetBehavior.setHideable(true);  //Скрытие свайпом
+
     }
 
-    private void createInformer(ArrayList<WeatherHourData> arrayList){
+    private void createInformer(ArrayList<WeatherHourData> arrayList) {
 
-        SimpleDateFormat format = new SimpleDateFormat("H", new Locale("ru"));
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm", new Locale("ru"));
+        String dateInfoStr;
         Date dateNow = new Date();
-        String dateStr = format.format(dateNow) + ":00";
-        mInformer.removeAllViews();
-        View leftSide = getLayoutInflater().inflate(R.layout.left_side, null, false);
-        TextView vind = leftSide.findViewById(R.id.wind);   // Скорость ветра направление
-        TextView davl = leftSide.findViewById(R.id.davl);  //Давление
-        TextView vlag = leftSide.findViewById(R.id.vlag);  //Влажность
-        // Первый элемент массива с данными о погоде
-        WeatherHourData weather = arrayList.get(0);
-        vind.setText(weather.getWindspeed() + " м/с, " + weather.getWinddir());
-        davl.setText(weather.getPressure() + " мм рт. ст.");
-        vlag.setText(weather.getHumidity() + "%");
-        //Добавляем данные в информер
-        mInformer.addView(leftSide);
+        DateFormat format2 = new SimpleDateFormat("EEEE", new Locale("ru"));
+
+        if (arrayList.size() > 0){
+
+            WeatherHourData dataNowDay = arrayList.get(0);  //Данные первого дня
+            String dayOfWeek = format2.format(dataNowDay.getTime());  //Получаем день недели
+            //dayOfWeek = firstUpperCase(dayOfWeek);                    //Делаем первую букву заглавной
+            mInfoTemp.setText(String.format(new Locale("ru"), "%d° %d°", dataNowDay.getMaxC(), dataNowDay.getMinC()));
+            mInfoDay.setText(String.format("%s Сегодня", dayOfWeek));
+
+            WeatherHourData dataNextDay = arrayList.get(arrayList.size() - 1); //Данные второго дня
+            String dayOfWeekNext = format2.format(dataNextDay.getTime());
+            //dayOfWeekNext = firstUpperCase(dayOfWeekNext);
+            mInfoTempNext.setText(String.format(new Locale("ru"), "%d° %d°", dataNextDay.getMaxC(), dataNextDay.getMinC()));
+            mInfoDayNext.setText(dayOfWeekNext);
+
+        }
+
+
+        mInformer.removeAllViews();  // Удаляем все view с нашего ScrollView
+
+        TextView vind = findViewById(R.id.wind);   // Скорость ветра направление
+        TextView davl = findViewById(R.id.davl);  //Давление
+        TextView vlag = findViewById(R.id.vlag);  //Влажность
+        WeatherHourData weather = arrayList.get(0);       // Первый элемент массива с данными о погоде
+        vind.setText(String.format(new Locale("ru"),"%d м/с, %s", weather.getWindspeed(), weather.getWinddir()));
+        davl.setText(String.format(new Locale("ru"),"%d мм рт. ст.", weather.getPressure()));
+        vlag.setText(String.format(new Locale("ru"),"%d%%", weather.getHumidity()));
+
         boolean record = false;
-        for (WeatherHourData data : arrayList) {
-            //Проверяем соответствие времени данных и текущего, чтоб отсеить устаревшие данные
-            if(!record && data.getTime().equals(dateStr)) {
+        for (WeatherHourData data : arrayList) {   //Проходим по массиву с данными
+            if(!record && data.getTime().after(dateNow)) {  //Проверяем соответствие времени данных и текущего, чтоб отсеить устаревшие данные
                 record = true;
-                data.setTime("Сейчас");
+                dateInfoStr  = "Сейчас";
+                //setBackground(data.getTempC(), data.getWeatherCode());
+
+                mTemp.setText(String.format("%d°", tempC));
+                mDiscrWeather.setText(discrWeather);
+
+
+
+            }else{
+                dateInfoStr = format.format(data.getTime());
             }
-            View rowSide = getLayoutInflater().inflate(R.layout.row_side, null, false);
+            View rowSide = getLayoutInflater().inflate(R.layout.row_side, null, false);  //Часть информера с данными одного часа
             TextView time = rowSide.findViewById(R.id.time);
             ImageView image = rowSide.findViewById(R.id.image);
             TextView temp = rowSide.findViewById(R.id.temp);
             TextView chance = rowSide.findViewById(R.id.chance);
-            time.setText(data.getTime());
+            time.setText(dateInfoStr);
             image.setImageBitmap(data.getImage());
-            temp.setText(data.getTempC() + "°");
+            temp.setText(String.format(new Locale("ru"),"%d°", data.getTempC()));
 
             int chanseOfRain = data.getChanceOfRain();  // Вероятность дождя
             int chanseOfSnow = data.getChanceOfSnow();  //Вероятность снега
             int chanseOfThunder = data.getChanceOfThunder();//Вероятность грозы\града
 
-            //Если вероятнось выше 30% то показываем
-            if(chanseOfRain > 30){
-                chance.setText(chanseOfRain + "%");
+            if(chanseOfRain > 30){                    //Если вероятнось выше 30% то показываем
+                chance.setText(String.format(new Locale("ru"),"%d%%", chanseOfRain));
             }else if(chanseOfSnow > 30){
-                chance.setText(chanseOfSnow + "%");
+                chance.setText(String.format(new Locale("ru"),"%d%%", chanseOfSnow));
             }else if(chanseOfThunder > 30){
-                chance.setText(chanseOfThunder + "%");
+                chance.setText(String.format(new Locale("ru"),"%d%%", chanseOfThunder));
             }else {
                 chance.setText("");
             }
@@ -163,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onCompleted(Exception e, JsonObject result) {
                         if (e != null) {
                             Log.d(TAG, "Error = " + e);
+                            mLoading.setVisibility(View.GONE);
                         } else {
                             Log.d(TAG, "result = " + result);
                             String dateUpdate = "";
@@ -172,18 +253,33 @@ public class MainActivity extends AppCompatActivity {
                                 dateUpdate = j.getAsJsonObject().get("localtime").getAsString();  // Дата обновления
                             }
 
+
+                            JsonArray current_condition = result.get("data").getAsJsonObject().get("current_condition").getAsJsonArray();
+                            for (JsonElement j : current_condition) {
+                                Log.d(TAG, "current_condition = " + j);
+                                tempC = j.getAsJsonObject().get("temp_C").getAsInt();
+                                discrWeather = j.getAsJsonObject().get("lang_ru").getAsJsonArray().get(0).getAsJsonObject().get("value").getAsString();
+
+                            }
+
                             JsonArray weather = result.get("data").getAsJsonObject().get("weather").getAsJsonArray();  // Массив с данными о  погоде, в каждом элементе 1 день
 
 
                             mDataArrayList = new ArrayList<>();  // Список для хранения обектов с данными о погоде
+
                             for (JsonElement j : weather) {
+                                String sunrise = "";
+                                String sunset = "";
+                                String dateDay = j.getAsJsonObject().get("date").getAsString();
                                 JsonArray astronomy = j.getAsJsonObject().get("astronomy").getAsJsonArray();
                                 for (JsonElement astr : astronomy) {
-                                    String sunrise = astr.getAsJsonObject().get("sunrise").getAsString();// Время восхода солнца
-                                    String sunset = astr.getAsJsonObject().get("sunset").getAsString(); //Время захода солнца
+                                    sunrise = dateDay + " " + astr.getAsJsonObject().get("sunrise").getAsString();// Время восхода солнца
+                                    sunset = dateDay + " " + astr.getAsJsonObject().get("sunset").getAsString(); //Время захода солнца
 
                                 }
                                 JsonArray hourly = j.getAsJsonObject().get("hourly").getAsJsonArray();  //Массив сданными о погоде по часам
+                                int minC = j.getAsJsonObject().get("mintempC").getAsInt();
+                                int maxC = j.getAsJsonObject().get("maxtempC").getAsInt();
                                 //     Log.d(TAG, "hourly = " + hourly);
 //                                JsonArray hourly = result.get("hourly").getAsJsonArray();
 
@@ -205,10 +301,11 @@ public class MainActivity extends AppCompatActivity {
                                     int pressure = hour.getAsJsonObject().get("pressure").getAsInt();  //Давление
                                     int weatherCode = hour.getAsJsonObject().get("weatherCode").getAsInt();  //Код погоды
                                     String winddir16Point = hour.getAsJsonObject().get("winddir16Point").getAsString();  //Направление ветра в 16 точном компасе
-                                    WeatherHourData weatherHourData = new WeatherHourData();  //Объект для хранения данных
-                                    weatherHourData.setTime(getTimeString(time));
-                                    weatherHourData.setTempC(tempC);
 
+                                    WeatherHourData weatherHourData = new WeatherHourData();  //Объект для хранения данных
+
+                                    weatherHourData.setTempC(tempC);
+                                    weatherHourData.setWeatherCode(weatherCode);
                                     weatherHourData.setWeatherDesc(weatherDesc);
                                     weatherHourData.setUrlIcon(urlIcon);
                                     weatherHourData.setChanceOfRain(chanceofrain);
@@ -223,7 +320,13 @@ public class MainActivity extends AppCompatActivity {
                                     weatherHourData.setHumidity(humidity);
                                     weatherHourData.setDateUpdate(dateUpdate);
                                     weatherHourData.setPressure(getMMrt(pressure));
-                                    weatherHourData.setImage(getImageweather(time, weatherCode));
+                                    Date dateInfo = stringToDateTime(getTimeString(dateDay, time));
+                                    weatherHourData.setTime(dateInfo);
+                                    weatherHourData.setMinC(minC);
+                                    weatherHourData.setMaxC(maxC);
+                                    //Log.d(TAG, "dateInfo = " + dateInfo);
+
+                                    weatherHourData.setImage(getImageweather(dateInfo, weatherCode, stringToDate(sunrise), stringToDate(sunset)));
                                     mDataArrayList.add(weatherHourData); //Сохраняем данные в массив
 
 
@@ -240,15 +343,19 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private Date stringToDate(String string){
+
+
+    private Date stringToDateTime(String string){ //Преобразование строки в дату
+
         Date date = new Date();
-        DateFormat dateFormat = new SimpleDateFormat("hh:mm A", new Locale("ru"));
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", new Locale("ru"));
         try {
             date = dateFormat.parse(string);
         } catch (ParseException e) {
-            Log.d(TAG, "Eroro = " + e);
+            Log.d(TAG, "Error = " + e);
             e.printStackTrace();
         }
+
         return date;
     }
 
@@ -565,14 +672,13 @@ public class MainActivity extends AppCompatActivity {
 
     //Вызывается при получении разрешения от пользователя на доступ к геолокации
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) { //Вызывается при получении разрешения от пользователя на доступ к геолокации
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case 1000: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    //Получения последнего местоположения
-                    getLastLocation();
+                    getLastLocation(); //Получения последнего место положения
                 } else {
                     Snackbar.make(findViewById(android.R.id.content), getString(R.string.premission_dained), Snackbar.LENGTH_INDEFINITE).setAction(R.string.enable, new EnableLocation()).show();
                     //Сообщение пользователю что он не дал разрешение, с возможностью повторить запрос разрешения
@@ -590,6 +696,7 @@ public class MainActivity extends AppCompatActivity {
                     locationRequestCode);
         }
     }
+
 
     @Override
     protected void onResume() {
