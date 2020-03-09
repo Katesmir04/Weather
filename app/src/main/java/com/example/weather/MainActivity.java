@@ -23,6 +23,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -33,6 +34,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.weather.dialogFragments.DialogRecomended;
+import com.example.weather.dialogFragments.SetAgeBaby;
 import com.example.weather.enteties.RecomendObject;
 import com.example.weather.enteties.WeatherHourData;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -50,8 +52,12 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+
+import static com.example.weather.dialogFragments.SetAgeBaby.AGE;
+import static com.example.weather.dialogFragments.SetAgeBaby.TEMPER;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -136,6 +142,12 @@ public class MainActivity extends AppCompatActivity {
 
         mInformer = findViewById(R.id.informer);
 
+        // Выдвижная панель
+        LinearLayout hiddenLay = findViewById(R.id.hidden_lay);
+        BottomSheetBehavior bottomSheetBehavior = BottomSheetBehavior.from(hiddenLay);
+        bottomSheetBehavior.setPeekHeight(50); //Высота выступающей части
+        bottomSheetBehavior.setHideable(true);  //Скрытие свайпом
+
         //  Открытие диалога с рекомендациями
         imageBaby.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -147,11 +159,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        // Выдвижная панель
-        LinearLayout hiddenLay = findViewById(R.id.hidden_lay);
-        BottomSheetBehavior bottomSheetBehavior = BottomSheetBehavior.from(hiddenLay);
-        bottomSheetBehavior.setPeekHeight(50); //Высота выступающей части
-        bottomSheetBehavior.setHideable(false);  //Скрытие свайпом
+
 
     }
 
@@ -167,6 +175,26 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        // Клик по кнопке настроек
+        if(item.getItemId() == R.id.age){
+            showDialogAge();
+            //Клик по кнопке обновления
+        }else if(item.getItemId() == R.id.refresh){
+            getLastLocation();
+        }
+        return true;
+
+    }
+
+    private void showDialogAge() {
+        SetAgeBaby setAgeBaby = new SetAgeBaby();
+        Bundle bundle = new Bundle();
+        bundle.putInt(TEMPER, tempC);
+        setAgeBaby.setArguments(bundle);
+        setAgeBaby.show(getSupportFragmentManager(), "SetAgeBaby");
+    }
 
     private void createInformer(ArrayList<WeatherHourData> arrayList) {
 
@@ -246,6 +274,40 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+
+        if(!mPreferences.contains(AGE)){
+            mLoading.setVisibility(View.GONE);
+            //Показываем диалог ввода даты рождения(если еще не вводился)
+            showDialogAge();
+        }else {
+            //Если вводился получаем данные с сервера
+            getInfoFromServer(tempC, mPreferences.getFloat(AGE, 0));
+        }
+
+    }
+
+    private String firstUpperCase(String word){
+        if(word == null || word.isEmpty()) return word;
+        return word.substring(0, 1).toUpperCase() + word.substring(1);
+    }
+
+    //Возращает время суток
+    private Typeday getTypeDayFromTime(){
+        Calendar calendar = Calendar.getInstance();
+        int hour = 0;
+        hour = calendar.get(Calendar.HOUR_OF_DAY);
+        Typeday result = Typeday.day;
+        if(hour > 5 && hour < 12){
+            result = Typeday.morning;
+        }else if(hour >= 12 && hour <= 18){
+            result = Typeday.day;
+        }else if(hour > 18 && hour <= 23){
+            result = Typeday.evening;
+        }else {
+            result = Typeday.night;
+        }
+
+        return result;
     }
 
     //Запрашиваем данные о погоде по координатам
@@ -336,13 +398,13 @@ public class MainActivity extends AppCompatActivity {
                                     weatherHourData.setHumidity(humidity);
                                     weatherHourData.setDateUpdate(dateUpdate);
                                     weatherHourData.setPressure(getMMrt(pressure));
-                                    //Date dateInfo = stringToDateTime(getTimeString(dateDay, time));
-                                    //weatherHourData.setTime(dateInfo);
+                                    Date dateInfo = stringToDateTime(getTimeString(dateDay, time));
+                                    weatherHourData.setTime(dateInfo);
                                     weatherHourData.setMinC(minC);
                                     weatherHourData.setMaxC(maxC);
                                     //Log.d(TAG, "dateInfo = " + dateInfo);
 
-                                    //weatherHourData.setImage(getImageweather(dateInfo, weatherCode, stringToDate(sunrise), stringToDate(sunset)));
+                                    weatherHourData.setImage(getImageweather(dateInfo, weatherCode, stringToDate(sunrise), stringToDate(sunset)));
                                     mDataArrayList.add(weatherHourData); //Сохраняем данные в массив
 
 
@@ -359,6 +421,42 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void getInfoFromServer(int temp, double age){  //Запрос данных в веб сервисе
+        mLoading.setVisibility(View.VISIBLE);
+        JsonObject json = new JsonObject();
+        json.addProperty("getInfo", true);
+        json.addProperty("temp", temp);  // температура
+        json.addProperty("age", age);   // возраст
+
+        Ion.with(this)
+                .load("http://androiddev.xyz/weatherApp/getInfo.php")
+                .setJsonObjectBody(json)
+                .asJsonObject()
+                .setCallback(new FutureCallback<JsonObject>() {
+                    @Override
+                    public void onCompleted(Exception e, JsonObject result) {
+                        if (e != null) {
+                            Log.d(TAG, "Error = " + e);
+                            //  updateInfoBaby("");
+                        } else {
+                            Log.d(TAG, "Result = " + result);
+                            if(result.get("message").getAsBoolean()) {
+                                JsonArray arr = result.get("result").getAsJsonArray();
+                                ArrayList<RecomendObject> arrayList = new ArrayList<>();
+                                for (JsonElement j : arr) {
+                                    String name = j.getAsJsonObject().get("name").getAsString(); // Название
+                                    String url = j.getAsJsonObject().get("image").getAsString();  // url картинки
+                                    RecomendObject recomendObject = new RecomendObject(name, url);
+                                    arrayList.add(recomendObject);
+                                }
+
+                                setmRecomendObject(arrayList);
+                            }
+                        }
+                        mLoading.setVisibility(View.GONE);
+                    }
+                });
+    }
 
     private Date stringToDate(String string){  //Преобразование строки в дату
 
@@ -388,19 +486,20 @@ public class MainActivity extends AppCompatActivity {
         return date;
     }
 
-    private Bitmap getImageweather(int time, int code){   //Получения картинки погоды по коду
+    //Получение картинки погоды по коду и времени суток
+    private Bitmap getImageweather(Date timeDay, int code, Date sunrise, Date sunset){
         switch (code){
             case 113:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_113n);
-                }else{
+                if(timeDay.after(sunset) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_113d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_113n);
                 }
             case 116:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_116n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_116d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_116n);
                 }
             case 119:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_122d);
@@ -409,26 +508,26 @@ public class MainActivity extends AppCompatActivity {
             case 143:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_143d);
             case 176:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356n);
                 }
             case 179:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
                 }
             case 182:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_179d);
             case 185:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_179d);
             case 200:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_392n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_392d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_392n);
                 }
             case 227:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_320d);
@@ -439,10 +538,10 @@ public class MainActivity extends AppCompatActivity {
             case 248:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_143d);
             case 263:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356n);
                 }
             case 266:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_359d);
@@ -455,18 +554,18 @@ public class MainActivity extends AppCompatActivity {
             case 296:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_296d);
             case 299:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356n);
                 }
             case 302:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_296d);
             case 305:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356n);
                 }
             case 308:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_296d);
@@ -479,101 +578,102 @@ public class MainActivity extends AppCompatActivity {
             case 320:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_320d);
             case 323:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
                 }
             case 326:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
                 }
             case 329:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_338d);
             case 332:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_338d);
             case 335:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
                 }
             case 338:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_338d);
             case 350:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_179d);
             case 353:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356n);
                 }
             case 356:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_356n);
                 }
             case 359:
-                return BitmapFactory.decodeResource(getResources(), R.drawable.ic_296d);
+                return BitmapFactory.decodeResource(getResources(), R.drawable.ic_359d);
             case 362:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
                 }
             case 365:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
                 }
             case 368:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
                 }
             case 371:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
                 }
             case 374:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
                 }
             case 377:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_377d);
             case 386:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_392n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_392d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_392n);
                 }
             case 389:
                 return BitmapFactory.decodeResource(getResources(), R.drawable.ic_389d);
             case 392:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_392n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_392d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_392n);
                 }
             case 395:
-                if(time >= 0 && time <= 500){
-                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
-                }else{
+                if(timeDay.after(sunrise) && timeDay.before(sunset)){
                     return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395d);
+                }else{
+                    return BitmapFactory.decodeResource(getResources(), R.drawable.ic_395n);
                 }
             default:
-                return BitmapFactory.decodeResource(getResources(), R.drawable.ic_no);
+                return BitmapFactory.decodeResource(getResources(), R.drawable.ic_nan);
         }
     }
+
 
     //Перевод милибаров а мм рт ст
     private int getMMrt(int pressure){
@@ -586,58 +686,58 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Приведение времени в нужный формат 0 -> 00:00, 100 -> 01:00
-    private String getTimeString(int time){
+    private String getTimeString(String date, int time){
         switch (time){
             case 0:
-                return "00:00";
+                return date + " 00:00";
             case 100:
-                return "01:00";
+                return date + " 01:00";
             case 200:
-                return "02:00";
+                return date + " 02:00";
             case 300:
-                return "03:00";
+                return date + " 03:00";
             case 400:
-                return "04:00";
+                return date + " 04:00";
             case 500:
-                return "05:00";
+                return date + " 05:00";
             case 600:
-                return "06:00";
+                return date + " 06:00";
             case 700:
-                return "07:00";
+                return date + " 07:00";
             case 800:
-                return "08:00";
+                return date + " 08:00";
             case 900:
-                return "09:00";
+                return date + " 09:00";
             case 1000:
-                return "10:00";
+                return date + " 10:00";
             case 1100:
-                return "11:00";
+                return date + " 11:00";
             case 1200:
-                return "12:00";
+                return date + " 12:00";
             case 1300:
-                return "13:00";
+                return date + " 13:00";
             case 1400:
-                return "14:00";
+                return date + " 14:00";
             case 1500:
-                return "15:00";
+                return date + " 15:00";
             case 1600:
-                return "16:00";
+                return date + " 16:00";
             case 1700:
-                return "17:00";
+                return date + " 17:00";
             case 1800:
-                return "18:00";
+                return date + " 18:00";
             case 1900:
-                return "19:00";
+                return date + " 19:00";
             case 2000:
-                return "20:00";
+                return date + " 20:00";
             case 2100:
-                return "21:00";
+                return date + " 21:00";
             case 2200:
-                return "22:00";
+                return date + " 22:00";
             case 2300:
-                return "23:00";
+                return date + " 23:00";
             default:
-                return "00:00";
+                return date + " 00:00";
         }
     }
 
