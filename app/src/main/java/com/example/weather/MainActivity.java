@@ -156,10 +156,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
-
-
-
+        
     }
 
     public void setmRecomendObject(ArrayList<RecomendObject> arrayList){
