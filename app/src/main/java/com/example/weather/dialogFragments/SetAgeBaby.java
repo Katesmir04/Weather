@@ -35,9 +35,7 @@ import java.util.Date;
 import static com.example.weather.MainActivity.TAG;
 
 
-/**
- * A simple {@link Fragment} subclass.
- */
+
 public class SetAgeBaby extends DialogFragment {
 
     public static final String TEMPER = "TEMPER";

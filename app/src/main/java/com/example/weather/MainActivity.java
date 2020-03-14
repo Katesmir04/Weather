@@ -147,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
         BottomSheetBehavior bottomSheetBehavior = BottomSheetBehavior.from(hiddenLay);
         bottomSheetBehavior.setPeekHeight(50); //Высота выступающей части
         bottomSheetBehavior.setHideable(true);  //Скрытие свайпом
-
         //  Открытие диалога с рекомендациями
         imageBaby.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -411,6 +410,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
 
                             }
+                            //Переходим к созданию информера
                             createInformer(mDataArrayList);  //Переходим к созданию информера
 
                         }
