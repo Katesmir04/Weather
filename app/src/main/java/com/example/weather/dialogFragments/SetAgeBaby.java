@@ -16,7 +16,6 @@ import android.widget.DatePicker;
 import android.widget.FrameLayout;
 
 import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
 
 import com.example.weather.MainActivity;
 import com.example.weather.R;
@@ -33,7 +32,6 @@ import java.util.Calendar;
 import java.util.Date;
 
 import static com.example.weather.MainActivity.TAG;
-
 
 
 public class SetAgeBaby extends DialogFragment {

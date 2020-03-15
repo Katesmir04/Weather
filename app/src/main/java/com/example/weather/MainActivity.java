@@ -1,18 +1,8 @@
 package com.example.weather;
 
-import android.content.SharedPreferences;
-import android.os.Bundle;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.core.app.ActivityCompat;
-
 import android.Manifest;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -25,13 +15,16 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.app.ActivityCompat;
 
 import com.example.weather.dialogFragments.DialogRecomended;
 import com.example.weather.dialogFragments.SetAgeBaby;
@@ -156,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        
+
     }
 
     public void setmRecomendObject(ArrayList<RecomendObject> arrayList){
@@ -203,13 +196,13 @@ public class MainActivity extends AppCompatActivity {
 
             WeatherHourData dataNowDay = arrayList.get(0);  //Данные первого дня
             String dayOfWeek = format2.format(dataNowDay.getTime());  //Получаем день недели
-            //dayOfWeek = firstUpperCase(dayOfWeek);                    //Делаем первую букву заглавной
+            dayOfWeek = firstUpperCase(dayOfWeek);                    //Делаем первую букву заглавной
             mInfoTemp.setText(String.format(new Locale("ru"), "%d° %d°", dataNowDay.getMaxC(), dataNowDay.getMinC()));
             mInfoDay.setText(String.format("%s Сегодня", dayOfWeek));
 
             WeatherHourData dataNextDay = arrayList.get(arrayList.size() - 1); //Данные второго дня
             String dayOfWeekNext = format2.format(dataNextDay.getTime());
-            //dayOfWeekNext = firstUpperCase(dayOfWeekNext);
+            dayOfWeekNext = firstUpperCase(dayOfWeekNext);
             mInfoTempNext.setText(String.format(new Locale("ru"), "%d° %d°", dataNextDay.getMaxC(), dataNextDay.getMinC()));
             mInfoDayNext.setText(dayOfWeekNext);
 
@@ -287,6 +280,7 @@ public class MainActivity extends AppCompatActivity {
         return word.substring(0, 1).toUpperCase() + word.substring(1);
     }
 
+
     //Возращает время суток
     private Typeday getTypeDayFromTime(){
         Calendar calendar = Calendar.getInstance();
@@ -354,11 +348,10 @@ public class MainActivity extends AppCompatActivity {
                                 JsonArray hourly = j.getAsJsonObject().get("hourly").getAsJsonArray();  //Массив сданными о погоде по часам
                                 int minC = j.getAsJsonObject().get("mintempC").getAsInt();
                                 int maxC = j.getAsJsonObject().get("maxtempC").getAsInt();
-                                //     Log.d(TAG, "hourly = " + hourly);
-//                                JsonArray hourly = result.get("hourly").getAsJsonArray();
+
 
                                 for (JsonElement hour : hourly) {
-                                    //  Log.d(TAG, "hourly = " + hour);
+
                                     int time = hour.getAsJsonObject().get("time").getAsInt(); //Время
                                     int tempC = hour.getAsJsonObject().get("tempC").getAsInt();  //Температура
                                     String weatherDesc = hour.getAsJsonObject().get("lang_ru").getAsJsonArray().get(0).getAsJsonObject().get("value").getAsString();  //Описание погоды
@@ -434,7 +427,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onCompleted(Exception e, JsonObject result) {
                         if (e != null) {
                             Log.d(TAG, "Error = " + e);
-                            //  updateInfoBaby("");
+                            //updateInfoBaby("");
                         } else {
                             Log.d(TAG, "Result = " + result);
                             if(result.get("message").getAsBoolean()) {
