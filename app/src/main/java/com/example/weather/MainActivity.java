@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -41,12 +43,14 @@ import com.google.gson.JsonObject;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import static com.example.weather.dialogFragments.SetAgeBaby.AGE;
@@ -266,12 +270,11 @@ public class MainActivity extends AppCompatActivity {
 
         if(!mPreferences.contains(AGE)){
             mLoading.setVisibility(View.GONE);
-            //Показываем диалог ввода даты рождения(если еще не вводился)
-            showDialogAge();
+            showDialogAge();  //Показываем диалог ввода даты рождения(если еще не вводился)
         }else {
-            //Если вводился получаем данные с сервера
-            getInfoFromServer(tempC, mPreferences.getFloat(AGE, 0));
+            getInfoFromServer(tempC, mPreferences.getFloat(AGE, 0));  //Если вводился получаем данные с сервера
         }
+
 
     }
 
@@ -782,6 +785,22 @@ public class MainActivity extends AppCompatActivity {
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
                             getInfoWeather(location.getLatitude(), location.getLongitude());  //Запрос погоды по координатам
+                            Geocoder gcd = new Geocoder(getApplicationContext(), Locale.getDefault());  // Запрос адреса по координатам
+                            List<Address> addresses = null;
+                            try {
+                                addresses = gcd.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            if (addresses != null && addresses.size() > 0) {
+                                if(addresses.get(0).getLocality() != null)
+                                    mCityName.setText(addresses.get(0).getLocality());
+                                else
+                                    mCityName.setText(addresses.get(0).getFeatureName());
+                            }
+                            else {
+                                mCityName.setText("Не определено");
+                            }
                         }else{
                             Snackbar.make(findViewById(android.R.id.content), getString(R.string.error_location), Snackbar.LENGTH_SHORT).show();  //Выводим сообщение об ошибке
                         }
