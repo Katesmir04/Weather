@@ -40,7 +40,7 @@ public class AdapterRecycler extends RecyclerView.Adapter<AdapterRecycler.ViewHo
         final RecomendObject object = mArrayList.get(position);
         holder.text.setText(object.getName());
         //Преобразование и загрузка данных картинки(формат только svg)
-        //Utils.fetchSvg(mContext, object.getUrlImage(), holder.image);
+        Utils.fetchSvg(mContext, object.getUrlImage(), holder.image);
 
 
     }

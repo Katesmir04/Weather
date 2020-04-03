@@ -56,13 +56,12 @@ import java.util.Locale;
 import static com.example.weather.dialogFragments.SetAgeBaby.AGE;
 import static com.example.weather.dialogFragments.SetAgeBaby.TEMPER;
 
-
 public class MainActivity extends AppCompatActivity {
 
 
     public static final String TAG = "my_log";
     public static final String URL_API = "http://api.worldweatheronline.com/premium/v1/weather.ashx?num_of_days=2&tp=1&format=json&lang=ru&showlocaltime=yes&mca=no";
-    public static final String API_KEY = "1b8eca6cb38e4ed48ea71659201801";
+    public static final String API_KEY = "13d8aa09aeca44af906125733200304";
 
     private FusedLocationProviderClient fusedLocationClient;
 
@@ -283,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
         return word.substring(0, 1).toUpperCase() + word.substring(1);
     }
 
-
+   
     //Возращает время суток
     private Typeday getTypeDayFromTime(){
         Calendar calendar = Calendar.getInstance();
