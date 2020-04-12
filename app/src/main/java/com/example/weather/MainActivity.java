@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
             if(!record && data.getTime().after(dateNow)) {  //Проверяем соответствие времени данных и текущего, чтоб отсеить устаревшие данные
                 record = true;
                 dateInfoStr  = "Сейчас";
-                //setBackground(data.getTempC(), data.getWeatherCode());
+                setBackground(data.getTempC(), data.getWeatherCode());
 
                 mTemp.setText(String.format("%d°", tempC));
                 mDiscrWeather.setText(discrWeather);
@@ -282,7 +282,156 @@ public class MainActivity extends AppCompatActivity {
         return word.substring(0, 1).toUpperCase() + word.substring(1);
     }
 
-   
+    //Устанавливаем фон в зависимости от кода погоды и времени
+    private void setBackground(int temp, int сode){
+        Typeday typeday = getTypeDayFromTime();
+
+        if(сode == 179 || сode == 323 || сode == 326 || сode == 335 || сode == 362 || сode == 365 || сode == 368 || сode == 371 || сode == 374 || сode == 227
+                || сode == 320 || сode == 230 || сode == 332 || сode == 338 || сode == 377 || сode == 395)//Snow
+        {
+            if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.evening || typeday == Typeday.night) &&
+                    (temp >= -5 && temp <= 5) ){
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_14));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_snow));
+            }else
+
+            if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.evening || typeday == Typeday.night) &&
+                    (temp >= -15 && temp < -5) ){
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_17));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_snow));
+            }else
+
+            if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.evening || typeday == Typeday.night) &&
+                    (temp < -15) ){
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_22));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_snow));
+            }
+
+
+        } else if(сode == 296 || сode == 302 ||сode == 308 ||сode == 356 ||сode == 176 ||сode == 263 ||
+                сode == 299 ||сode == 305 ||сode == 353 ||сode == 266 ||сode == 293 ||сode == 359)  //Rain
+        {
+
+            if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.evening || typeday == Typeday.night) &&
+                    (temp > 17) ){
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_2));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_ra));
+            }else
+
+
+            if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.evening || typeday == Typeday.night)
+                    && temp >= 5){
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_6));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_ra));
+            }else
+
+
+            if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.evening || typeday == Typeday.night) &&
+                    (temp >= -5) ){
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_10));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_ra));
+            }
+
+        }else if(сode == 389 || сode == 392 ||сode == 386 ||сode == 200)  //Thunder
+        {
+            if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.evening || typeday == Typeday.night) &&
+                    (temp > 17) ) {
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_4));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_thunder));
+            }else
+            if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.evening || typeday == Typeday.night)&&
+                    (temp >= 5) ){
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_8));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_thunder));
+            }else
+
+            {
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_30));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_thunder));
+                Log.d(TAG, "Not Variant3");
+            }
+        }else{  //Sun
+
+            if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.night || typeday == Typeday.evening) &&
+                    (temp > 17) ){
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_1));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_sun));
+            }else
+
+            if((typeday == Typeday.morning || typeday == Typeday.day || typeday == Typeday.night || typeday == Typeday.evening) &&
+                    (temp >= 5) ){
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_5));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_sun));
+            }else
+            if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.night || typeday == Typeday.evening) &&
+                    (temp >= -5) ){
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_9));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_sun));
+            }else
+            if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.night || typeday == Typeday.evening) &&
+                    (temp >= -15) ){
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_16));
+            }else
+            if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.night || typeday == Typeday.evening) &&
+                    (temp < -15) ){
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_21));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_sun));
+            }else
+/*            if((typeday == Typeday.evening) &&
+                    ((temp >= 5 && temp <= 17)) ){
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_36));
+            }else
+            if((typeday == Typeday.evening) &&
+                    ((temp > 17)) ){
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_35));
+            }else
+            if((typeday == Typeday.evening) &&
+                    ((temp < -15)) ){
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_37));
+            }else
+            if((typeday == Typeday.evening) &&
+                    ((temp >= -5)) ){
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_39));
+            }else
+            if((typeday == Typeday.evening) &&
+                    ((temp >= -15 && temp < -5)) ){
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_39));
+            }else
+
+            if((typeday == Typeday.night) &&
+                    (temp > 17) ){
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_40));
+            }else
+            if((typeday == Typeday.night) &&
+                    ((temp >= 5)) ){
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_41));
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.image_thunder));
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.image_snow));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_ra));
+            }else
+            if((typeday == Typeday.night) &&
+                    ((temp >= -5)) ){
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_42));
+            }else
+            if((typeday == Typeday.night) &&
+                    ((temp >= -15)) ){
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_43));
+            }else
+            if((typeday == Typeday.night) &&
+                    (temp < -15) ){
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_44));
+            }else*/
+
+            {
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_44));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_sun));
+                Log.d(TAG, "Not Variant4");
+            }
+        }
+
+
+    }
+
     //Возращает время суток
     private Typeday getTypeDayFromTime(){
         Calendar calendar = Calendar.getInstance();
