@@ -353,24 +353,25 @@ public class MainActivity extends AppCompatActivity {
         }else{  //Sun
 
             if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.night || typeday == Typeday.evening) &&
-                    (temp > 17) ){
+                    (temp >= 17) ){
                 //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_1));
                 mContainer.setBackground(getResources().getDrawable(R.mipmap.image_sun));
             }else
 
             if((typeday == Typeday.morning || typeday == Typeday.day || typeday == Typeday.night || typeday == Typeday.evening) &&
-                    (temp >= 5) ){
+                    (temp >= 5 && temp<17) ){
                 //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_5));
                 mContainer.setBackground(getResources().getDrawable(R.mipmap.image_sun));
             }else
             if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.night || typeday == Typeday.evening) &&
-                    (temp >= -5) ){
+                    (temp >= -5 && temp<5) ){
                 //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_9));
                 mContainer.setBackground(getResources().getDrawable(R.mipmap.image_sun));
             }else
             if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.night || typeday == Typeday.evening) &&
-                    (temp >= -15) ){
-                mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_16));
+                    (temp >= -15 && temp<-5) ){
+                //mContainer.setBackground(getResources().getDrawable(R.mipmap.icon_16));
+                mContainer.setBackground(getResources().getDrawable(R.mipmap.image_sun));
             }else
             if((typeday == Typeday.day || typeday == Typeday.morning || typeday == Typeday.night || typeday == Typeday.evening) &&
                     (temp < -15) ){
