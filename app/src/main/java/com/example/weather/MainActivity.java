@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "my_log";
     public static final String URL_API = "http://api.worldweatheronline.com/premium/v1/weather.ashx?num_of_days=2&tp=1&format=json&lang=ru&showlocaltime=yes&mca=no";
-    public static final String API_KEY = "13d8aa09aeca44af906125733200304";
+    public static final String API_KEY = "c0303a62a39c4638b9a162448202605";
 
     private FusedLocationProviderClient fusedLocationClient;
 
