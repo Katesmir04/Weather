@@ -7,13 +7,13 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title">Choose your baby's date of birth</string>
-    <string name="age_text">Возраст ребенка</string>
+    <string name="age_text">Child age</string>
     <string-array name="ageList">
-        <item>От 1 до 6 месяцев</item>
-        <item>От 6 месяцев до 1 года</item>
-        <item>Более 1 года</item>
+        <item>1 to 6 months</item>
+        <item>6 months to 1 year</item>
+        <item>More than 1 year</item>
     </string-array>
-    <string name="save">Продолжить</string>
-    <string name="recomend">Вам стоит надеть на ребенка</string>
+    <string name="save">Continue</string>
+    <string name="recomend">You should wear a baby</string>
 
 </resources>
