@@ -13,13 +13,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <FrameLayout
+        <!--<FrameLayout
             android:layout_width="match_parent"
             android:layout_height="145dp"
             android:layout_gravity="top"
             android:background="@drawable/bg_top_info">
 
-        </FrameLayout>
+        </FrameLayout>-->
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -39,8 +39,9 @@
             android:gravity="center_horizontal"
             android:text="TextView"
             android:textColor="@color/black"
-            android:textSize="18sp" />
-
+            android:textSize="24sp" />
+        <!-- -->
+//18
         <TextView
             android:id="@+id/discr"
             android:layout_width="wrap_content"
@@ -50,8 +51,8 @@
             android:gravity="center_horizontal"
             android:text="TextView"
             android:textColor="@color/black"
-            android:textSize="14sp" />
-
+            android:textSize="18sp" />
+//14
         <TextView
             android:id="@+id/temper"
             android:layout_width="wrap_content"
@@ -61,9 +62,9 @@
             android:gravity="center_horizontal"
             android:text="TextView"
             android:textColor="@color/black"
-            android:textSize="18sp"
+            android:textSize="30sp"
             android:textStyle="bold" />
-
+//18
         <ImageView
             android:id="@+id/baby"
             android:layout_width="400dp"
@@ -82,7 +83,7 @@
         android:layout_height="255dp"
         android:background="@drawable/bg_informer"
         android:orientation="vertical"
-        app:behavior_hideable="true"
+        app:behavior_hideable="false"
         app:behavior_peekHeight="28dp"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
