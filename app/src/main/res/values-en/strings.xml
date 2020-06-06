@@ -1,12 +1,12 @@
 <resources>
     <string name="app_name">WeatherApp</string>
-    <string name="premission_dained">Доступ к местоположению отключен</string>
-    <string name="enable">Включить</string>
-    <string name="error_location">Не удалось получить данные о местоположении</string>
-    <string name="error_load">Не удалось получить данные</string>
+    <string name="premission_dained">Location access disabled</string>
+    <string name="enable">Enable</string>
+    <string name="error_location">Failed to get location data.</string>
+    <string name="error_load">Failed to get data.</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title">Выберите дату рождения Вашего ребенка</string>
+    <string name="title">Choose your baby's date of birth</string>
     <string name="age_text">Возраст ребенка</string>
     <string-array name="ageList">
         <item>От 1 до 6 месяцев</item>
