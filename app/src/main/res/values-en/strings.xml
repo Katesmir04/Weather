@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">WeatherApp</string>
+    <string name="premission_dained">Location access disabled</string>
+    <string name="enable">Enable</string>
+    <string name="error_location">Failed to get location data.</string>
+    <string name="error_load">Failed to get data.</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title">Choose your baby's date of birth</string>
+    <string name="age_text">Child age</string>
+    <string-array name="ageList">
+        <item>1 to 6 months</item>
+        <item>6 months to 1 year</item>
+        <item>More than 1 year</item>
+    </string-array>
+    <string name="save">Continue</string>
+    <string name="recomend">You should wear a baby</string>
+
+</resources>
